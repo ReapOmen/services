@@ -96,7 +96,7 @@ class Release(db.Model):
         self.build_number = build_number
         # Swagger doesn't let passing null values for strings, we use "falsy"
         # ones instead
-        self.release_eta = release_eta or None
+        self.release_eta = release_eta or ''
         self.partial_updates = partial_updates
         self.status = status
 
