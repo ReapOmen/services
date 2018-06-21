@@ -93,6 +93,10 @@ class PulseHook(Hook):
         env = self.parse(body)
         if env is None:
             logger.warn('Skipping message, no task created', hook=self.hook_id)
+        elif isinstance(env, list):
+            # Support multiple tasks
+            for e in env:
+                await self.create_task(extra_env=e)
         else:
             await self.create_task(extra_env=env)
 
