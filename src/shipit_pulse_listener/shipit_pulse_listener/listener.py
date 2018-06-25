@@ -232,9 +232,9 @@ class HookCodeCoverage(PulseHook):
 
         logger.info('Received groupResolved notification for coverage builds', revision=build_task['task']['payload']['env']['GECKO_HEAD_REV'], group=taskGroupId)  # noqa
 
-        return {
+        return [{
             'REVISION': build_task['task']['payload']['env']['GECKO_HEAD_REV'],
-        }
+        }]
 
 
 class PulseListener(object):
