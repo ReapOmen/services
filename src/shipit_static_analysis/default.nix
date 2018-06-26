@@ -62,11 +62,9 @@ let
             ]
             {
               "$if" = "firedBy == 'triggerHook'";
-              "then" = {
-                "$eval" = [
-                  ("index.project.releng.services.project." + branch + ".shipit_static_analysis.\${payload.ANALYSIS_SOURCE}.\${payload.ANALYSIS_ID}")
-                ];
-              };
+              "then" = [
+                ("index.project.releng.services.project." + branch + ".shipit_static_analysis.\${payload.ANALYSIS_SOURCE}.\${payload.ANALYSIS_ID}")
+              ];
               "else" = [];
             }
           ];
