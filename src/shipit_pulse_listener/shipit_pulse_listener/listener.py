@@ -144,7 +144,7 @@ class HookStaticAnalysis(PulseHook):
 
             for c in payload.get('commits', [])
         ]
-        logger.info('Received new commits', revs=[e['REVISION'] for e in envs])
+        logger.info('Received new commits', revs=[e['MOZREVIEW_REVISION'] for e in envs])
         return envs
 
 
