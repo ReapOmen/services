@@ -9,6 +9,8 @@ import itertools
 import os
 import subprocess
 import tempfile
+from datetime import datetime
+from datetime import timedelta
 
 import hglib
 
@@ -28,7 +30,6 @@ from shipit_static_analysis.config import settings
 from shipit_static_analysis.lint import MozLint
 from shipit_static_analysis.report.debug import DebugReporter
 from shipit_static_analysis.utils import build_temp_file
-from datetime import datetime, timedelta
 
 logger = get_logger(__name__)
 
