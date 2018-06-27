@@ -53,22 +53,10 @@ let
           };
         };
 
-        taskRoutes = {
-          "$flatten" = [
-            [
-              # Latest route
-              ("index.project.releng.services.project." + branch + ".shipit_static_analysis.latest")
-
-            ]
-            {
-              "$if" = "firedBy == 'triggerHook'";
-              "then" = [
-                ("index.project.releng.services.project." + branch + ".shipit_static_analysis.\${payload.ANALYSIS_SOURCE}.\${payload.ANALYSIS_ID}")
-              ];
-              "else" = [];
-            }
-          ];
-        };
+        taskRoutes = [
+          # Latest route
+          ("index.project.releng.services.project." + branch + ".shipit_static_analysis.latest")
+        ];
 
         taskCapabilities = {};
         taskCommand = [

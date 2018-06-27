@@ -107,6 +107,12 @@ class PhabricatorRevision(Revision):
         revision = self.api.load_revision(self.phid)
         self.id = revision['id']
 
+    @property
+    def namespaces(self):
+        return [
+            'phabricator.{}.{}'.format(self.id, self.diff_id)
+        ]
+
     def __str__(self):
         return 'Phabricator #{} - {}'.format(self.diff_id, self.diff_phid)
 
@@ -169,6 +175,12 @@ class MozReviewRevision(Revision):
     @property
     def url(self):
         return 'https://reviewboard.mozilla.org/r/{}/'.format(self.review_request_id) # noqa
+
+    @property
+    def namespaces(self):
+        return [
+            'mozreview.{}.{}'.format(self.review_request.id, self.diffset_revision)
+        ]
 
     def build_diff_name(self):
         return '{}-{}-{}-clang-format.diff'.format(

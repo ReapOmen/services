@@ -28,15 +28,18 @@ from shipit_static_analysis.config import settings
 from shipit_static_analysis.lint import MozLint
 from shipit_static_analysis.report.debug import DebugReporter
 from shipit_static_analysis.utils import build_temp_file
+from datetime import datetime, timedelta
 
 logger = get_logger(__name__)
+
+TASKCLUSTER_NAMESPACE = 'index.project.releng.services.project.{channel}.shipit_static_analysis.{name}'
 
 
 class Workflow(object):
     '''
     Static analysis workflow
     '''
-    def __init__(self, reporters, analyzers):
+    def __init__(self, reporters, analyzers, index_service):
         assert isinstance(analyzers, list)
         assert len(analyzers) > 0, \
             'No analyzers specified, will not run.'
@@ -49,10 +52,12 @@ class Workflow(object):
             self.taskcluster_task_id = os.environ['TASK_ID']
             self.taskcluster_run_id = os.environ['RUN_ID']
             self.taskcluster_results_dir = '/tmp/results'
+            self.on_taskcluster = True
         else:
             self.taskcluster_task_id = 'local instance'
             self.taskcluster_run_id = 0
             self.taskcluster_results_dir = tempfile.mkdtemp()
+            self.on_taskcluster = False
         if not os.path.isdir(self.taskcluster_results_dir):
             os.makedirs(self.taskcluster_results_dir)
 
@@ -64,8 +69,8 @@ class Workflow(object):
         # Always add debug reporter and Diff reporter
         self.reporters['debug'] = DebugReporter(output_dir=self.taskcluster_results_dir)
 
-        # Finally, clone the mercurial repository
-        self.hg = self.clone()
+        # Use TC index service client
+        self.index_service = index_service
 
     @stats.api.timed('runtime.clone')
     def clone(self):
@@ -104,6 +109,13 @@ class Workflow(object):
          * Publish results
         '''
         analyzers = []
+
+        # Index ASAP Taskcluster task for this revision
+        for namespace in revision.namespaces:
+            self.index(namespace, revision.as_dict())
+
+        # Start by cloning the mercurial repository
+        self.hg = self.clone()
 
         # Add log to find Taskcluster task in papertrail
         logger.info(
@@ -286,3 +298,21 @@ class Workflow(object):
             diff_name=diff_name,
         )
         logger.info('Diff available online', url=revision.diff_url)
+
+    def index(self, name, data={}):
+        '''
+        Index current task on Taskcluster index
+        '''
+        if not self.on_taskcluster:
+            return
+
+        namespace = TASKCLUSTER_NAMESPACE.format(settings.app_channel, name)
+        self.index_service.insertTask(
+            namespace,
+            {
+                'taskId': self.taskcluster_task_id,
+                'rank': 0,
+                'data': data,
+                'expires': (datetime.utcnow() + timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            }
+        )

@@ -8,7 +8,7 @@ import click
 from cli_common.cli import taskcluster_options
 from cli_common.log import get_logger
 from cli_common.log import init_logger
-from cli_common.taskcluster import get_secrets
+from cli_common.taskcluster import get_secrets, get_service
 from shipit_static_analysis import config
 from shipit_static_analysis import stats
 from shipit_static_analysis.config import settings
@@ -93,6 +93,13 @@ def main(source,
         taskcluster_access_token,
     )
 
+    # Load index service
+    index_service = get_service(
+        'index',
+        taskcluster_client_id,
+        taskcluster_access_token,
+    )
+
     # Load unique revision
     if source == 'phabricator':
         api = reporters.get('phabricator')
@@ -106,7 +113,7 @@ def main(source,
     else:
         raise Exception('Unsupported analysis source: {}'.format(source))
 
-    w = Workflow(reporters, secrets['ANALYZERS'])
+    w = Workflow(reporters, secrets['ANALYZERS'], index_service)
     try:
         w.run(revision)
     except Exception as e:
